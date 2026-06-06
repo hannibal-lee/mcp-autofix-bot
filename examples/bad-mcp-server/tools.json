@@ -1,0 +1,31 @@
+{
+  "tools": [
+    {
+      "name": "delete_file",
+      "description": "Delete file",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": ["path"]
+      }
+    },
+    {
+      "name": "search_docs",
+      "description": "Search indexed project documentation using a natural-language query.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural-language search query."
+          }
+        },
+        "required": ["query"]
+      }
+    }
+  ]
+}

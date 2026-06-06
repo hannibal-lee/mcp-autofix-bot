@@ -1,0 +1,50 @@
+{
+  "tool": "mcp-autofix-bot",
+  "version": "0.1.0",
+  "source": "tools.json",
+  "summary": {
+    "status": "fail",
+    "toolCount": 2,
+    "issueCount": 3,
+    "errorCount": 1,
+    "warningCount": 2
+  },
+  "issues": [
+    {
+      "ruleId": "tool-description-vague",
+      "severity": "warning",
+      "tool": "delete_file",
+      "message": "Tool description is too short or lacks a clear sentence boundary."
+    },
+    {
+      "ruleId": "dangerous-tool-needs-confirmation",
+      "severity": "error",
+      "tool": "delete_file",
+      "message": "Potentially destructive or side-effectful tool does not expose a confirmation, preview, or dry-run field."
+    },
+    {
+      "ruleId": "property-description-missing",
+      "severity": "warning",
+      "tool": "delete_file",
+      "property": "path",
+      "message": "Input property \"path\" is missing a description."
+    }
+  ],
+  "fixes": [
+    {
+      "tool": "delete_file",
+      "title": "Clarify tool purpose and safe-use boundaries",
+      "patchHint": "Expand the description with the operation scope, side effects, failure modes, and user-visible result."
+    },
+    {
+      "tool": "delete_file",
+      "title": "Require confirmation or dry-run for side-effectful action",
+      "patchHint": "Add a confirmation, preview, or dry_run field and describe when callers must use it before execution."
+    },
+    {
+      "tool": "delete_file",
+      "title": "Describe input property \"path\"",
+      "patchHint": "Add a concise property description that states format, constraints, examples, and whether the value is user-controlled."
+    }
+  ]
+}

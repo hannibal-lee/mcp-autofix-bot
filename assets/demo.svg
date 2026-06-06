@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">mcp-autofix-bot demo</title>
+  <desc id="desc">A staged demo showing scan, issue detection, diff generation, and PR preview.</desc>
+  <style>
+    .bg { fill: #0c1117; }
+    .panel { fill: #111a24; stroke: #2b4056; stroke-width: 2; }
+    .accent { fill: #7dd3fc; }
+    .good { fill: #86efac; }
+    .warn { fill: #fbbf24; }
+    .bad { fill: #fb7185; }
+    .text { fill: #d6e4f0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 22px; }
+    .muted { fill: #8ba3b8; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 18px; }
+    .small { fill: #d6e4f0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 16px; }
+    .line { stroke: #32495f; stroke-width: 3; }
+  </style>
+  <rect class="bg" width="960" height="540" rx="24"/>
+  <text class="text" x="48" y="58">mcp-autofix-bot</text>
+  <text class="muted" x="48" y="88">Autofix unclear MCP tool schemas before agents misuse them.</text>
+
+  <rect class="panel" x="48" y="128" width="250" height="310" rx="18"/>
+  <circle class="accent" cx="82" cy="166" r="12"/>
+  <text class="text" x="108" y="174">1. Scan</text>
+  <text class="small" x="72" y="218">$ mcp-autofix-bot scan</text>
+  <text class="small" x="72" y="250">tools.json</text>
+  <text class="muted" x="72" y="302">reads MCP tools/list</text>
+  <text class="muted" x="72" y="332">and existing reports</text>
+
+  <line class="line" x1="310" y1="283" x2="370" y2="283"/>
+  <polygon class="line" points="370,283 352,270 352,296" fill="#32495f"/>
+
+  <rect class="panel" x="382" y="128" width="250" height="310" rx="18"/>
+  <circle class="warn" cx="416" cy="166" r="12"/>
+  <text class="text" x="442" y="174">2. Detect</text>
+  <text class="small" x="406" y="218">delete_file</text>
+  <text class="small bad" x="406" y="250">description: "Delete file"</text>
+  <text class="small warn" x="406" y="282">missing path docs</text>
+  <text class="small warn" x="406" y="314">no confirmation</text>
+
+  <line class="line" x1="644" y1="283" x2="704" y2="283"/>
+  <polygon class="line" points="704,283 686,270 686,296" fill="#32495f"/>
+
+  <rect class="panel" x="716" y="128" width="196" height="310" rx="18"/>
+  <circle class="good" cx="750" cy="166" r="12"/>
+  <text class="text" x="776" y="174">3. PR</text>
+  <text class="small" x="740" y="218">small diff</text>
+  <text class="small" x="740" y="250">clear rationale</text>
+  <text class="small" x="740" y="282">human review</text>
+  <text class="small good" x="740" y="334">ready for CI</text>
+
+  <text class="muted" x="48" y="490">Renovate for MCP tool quality. Small, reviewable PRs instead of AI slop.</text>
+</svg>

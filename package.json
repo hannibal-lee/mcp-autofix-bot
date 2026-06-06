@@ -1,0 +1,26 @@
+{
+  "name": "mcp-autofix-bot",
+  "version": "0.1.0",
+  "description": "Autofix unclear MCP tool schemas before agents misuse them.",
+  "type": "module",
+  "bin": {
+    "mcp-autofix-bot": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "scan": "node src/cli.js scan examples/bad-mcp-server/tools.json",
+    "pr": "node src/cli.js pr examples/reports/sample-scan-report.json --dry-run"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agent",
+    "schema",
+    "lint",
+    "github-actions"
+  ],
+  "license": "AGPL-3.0-only",
+  "engines": {
+    "node": ">=20"
+  }
+}

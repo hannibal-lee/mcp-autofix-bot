@@ -1,0 +1,8 @@
+node_modules/
+.ssh/
+npm-debug.log*
+coverage/
+dist/
+*.tgz
+report.json
+mcp-autofix-report.json
