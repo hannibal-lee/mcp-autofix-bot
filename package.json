@@ -9,6 +9,7 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "scan": "node src/cli.js scan examples/bad-mcp-server/tools.json",
+    "fix": "node src/cli.js fix examples/bad-mcp-server/tools.json --dry-run --json",
     "pr": "node src/cli.js pr examples/reports/sample-scan-report.json --dry-run"
   },
   "keywords": [

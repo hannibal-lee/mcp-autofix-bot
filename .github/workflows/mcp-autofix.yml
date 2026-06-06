@@ -16,7 +16,10 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npx mcp-autofix-bot scan examples/bad-mcp-server/tools.json --json --output mcp-autofix-report.json
+      - run: npx mcp-autofix-bot fix examples/bad-mcp-server/tools.json --dry-run --json > mcp-autofix-preview.json
       - uses: actions/upload-artifact@v4
         with:
-          name: mcp-autofix-report
-          path: mcp-autofix-report.json
+          name: mcp-autofix-artifacts
+          path: |
+            mcp-autofix-report.json
+            mcp-autofix-preview.json

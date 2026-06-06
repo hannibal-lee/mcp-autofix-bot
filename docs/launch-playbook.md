@@ -48,7 +48,7 @@ Recommended order:
 2. Reddit `r/mcp` and `r/LocalLLaMA`.
 3. MCP Discord.
 4. X / LinkedIn with PR screenshots.
-5. V2EX for Chinese-language launch.
+5. V2EX only if the post stays English-only and links to the same technical evidence.
 6. Product Hunt only after there is usage and social proof.
 
 ## Launch Copy
@@ -72,15 +72,9 @@ Repo: <repo-url>
 Demo: <demo-url>
 ```
 
-### Chinese Launch
+### V2EX
 
-```text
-我做了一个给 MCP Server 自动修 schema 和 tool description 的开源 bot。
-
-它不是又一个 agent framework，而是像 Renovate 一样，帮维护者发现 MCP tool 描述不清、参数 schema 不完整、危险操作缺 confirmation 的问题，然后生成小而可 review 的 PR。
-
-目标是让 agent 更少误用工具，也让 MCP server 的质量更容易被 CI 检查。
-```
+Use the same English launch copy as Hacker News. Do not add localization, translated docs, or separate non-English positioning before the project has real maintainer adoption.
 
 ## Guardrails
 

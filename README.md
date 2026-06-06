@@ -16,7 +16,7 @@ This project focuses on reviewability:
 
 - Find unclear tool descriptions and underspecified input properties.
 - Flag side-effectful tools that lack confirmation, preview, or dry-run semantics.
-- Generate small, maintainable fixes that humans can review.
+- Generate review-marked JSON previews that humans can review before applying.
 - Turn the results into GitHub Actions artifacts and pull request summaries.
 
 ## Quick start
@@ -25,7 +25,16 @@ This project focuses on reviewability:
 npm install
 npm test
 npm run scan
+npm run fix
 npm run pr
+```
+
+CLI interface:
+
+```text
+mcp-autofix-bot scan <tools.json> [--json] [--output report.json]
+mcp-autofix-bot fix <tools.json> --dry-run [--json]
+mcp-autofix-bot pr <report.json> (--dry-run | --create)
 ```
 
 Scan a tools manifest:
@@ -34,10 +43,22 @@ Scan a tools manifest:
 npx mcp-autofix-bot scan examples/bad-mcp-server/tools.json --json --output report.json
 ```
 
+Preview review-marked JSON changes without writing files:
+
+```bash
+npx mcp-autofix-bot fix examples/bad-mcp-server/tools.json --dry-run --json > preview.json
+```
+
 Preview the pull request it would prepare:
 
 ```bash
 npx mcp-autofix-bot pr report.json --dry-run
+```
+
+Create a live pull request only when you intentionally want the GitHub side effect:
+
+```bash
+npx mcp-autofix-bot pr report.json --create
 ```
 
 ## What it catches today
@@ -46,7 +67,7 @@ npx mcp-autofix-bot pr report.json --dry-run
 - `property-description-missing`: input schema properties without descriptions.
 - `dangerous-tool-needs-confirmation`: destructive or side-effectful tools without confirmation, preview, or dry-run affordances.
 
-The current CLI is intentionally small. The launch plan is to integrate reports from `mcp-lint`, `mcp-assert`, and `mcpdiff`, then use this bot to prepare narrow pull requests.
+The report reader also normalizes fixtures shaped like `mcp-lint`, `mcp-assert`, and `mcpdiff` output so workflows can compose with existing MCP quality tools.
 
 ## Before and after
 
@@ -76,10 +97,13 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npx mcp-autofix-bot scan examples/bad-mcp-server/tools.json --json --output mcp-autofix-report.json
+      - run: npx mcp-autofix-bot fix examples/bad-mcp-server/tools.json --dry-run --json > mcp-autofix-preview.json
       - uses: actions/upload-artifact@v4
         with:
-          name: mcp-autofix-report
-          path: mcp-autofix-report.json
+          name: mcp-autofix-artifacts
+          path: |
+            mcp-autofix-report.json
+            mcp-autofix-preview.json
 ```
 
 A complete example lives in [.github/workflows/mcp-autofix.yml](./.github/workflows/mcp-autofix.yml).
@@ -100,6 +124,7 @@ See [docs/launch-playbook.md](./docs/launch-playbook.md) for the full plan.
 - Do not claim this makes MCP servers safe.
 - Do not mass-open PRs.
 - Do not rewrite unrelated docs or code.
+- Do not run `pr --create` unless you intentionally want a live GitHub PR.
 - Every generated PR should be small, readable, and easy to close.
 
 ## License

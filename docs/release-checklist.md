@@ -8,8 +8,10 @@ Use this before the first public launch.
 - [ ] Demo SVG or GIF renders in GitHub.
 - [ ] `npm test` passes.
 - [ ] `npm run scan` produces a clear report.
+- [ ] `npm run fix` previews review-marked JSON changes without writing files.
 - [ ] GitHub Action example is copied into README and `.github/workflows/`.
 - [ ] Before/after examples cover vague descriptions, missing parameter semantics, and destructive tools.
+- [ ] `pr --create` remains documented as an explicit live GitHub side effect.
 
 ## Proof Readiness
 
