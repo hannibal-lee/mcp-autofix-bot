@@ -3,6 +3,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { planFixes } from "./fix-planner.js";
+import { previewFixes } from "./patch-writer.js";
 import { normalizeNativeTools } from "./report-readers.js";
 import { scanTool } from "./rules.js";
 
@@ -13,10 +14,12 @@ function usage() {
 
 Usage:
   mcp-autofix-bot scan <tools.json> [--json] [--output report.json]
+  mcp-autofix-bot fix <tools.json> --dry-run [--json]
   mcp-autofix-bot pr <report.json> --dry-run
 
 Examples:
   mcp-autofix-bot scan examples/bad-mcp-server/tools.json --json
+  mcp-autofix-bot fix examples/bad-mcp-server/tools.json --dry-run --json
   mcp-autofix-bot pr examples/reports/sample-scan-report.json --dry-run
 `;
 }
@@ -137,6 +140,31 @@ async function commandPr(args) {
   process.stdout.write(`${lines.join("\n")}\n`);
 }
 
+async function commandFix(args) {
+  const { flags, positionals } = parseFlags(args);
+  const inputPath = positionals[0];
+
+  if (!inputPath || flags.get("--help")) {
+    process.stdout.write(usage());
+    return;
+  }
+
+  if (!flags.has("--dry-run")) {
+    throw new Error("The fix command only supports --dry-run previews.");
+  }
+
+  const payload = JSON.parse(await readFile(inputPath, "utf8"));
+  const result = previewFixes(payload);
+  const output = JSON.stringify(result, null, 2);
+
+  if (flags.has("--json")) {
+    process.stdout.write(`${output}\n`);
+    return;
+  }
+
+  process.stdout.write(`Dry run: previewed ${result.changed.length} JSON changes without writing files.\n`);
+}
+
 async function main() {
   const [command, ...args] = process.argv.slice(2);
 
@@ -147,6 +175,11 @@ async function main() {
 
   if (command === "scan") {
     await commandScan(args);
+    return;
+  }
+
+  if (command === "fix") {
+    await commandFix(args);
     return;
   }
 

@@ -107,3 +107,50 @@ test("pr command summarizes the dry-run pull request without touching remotes", 
   assert.match(stdout, /Clarify destructive behavior/);
   assert.match(stdout, /Require confirmation flag/);
 });
+
+test("fix dry-run prints a JSON preview without writing the source manifest", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "mcp-autofix-test-"));
+  const inputPath = join(dir, "tools.json");
+  await writeFile(
+    inputPath,
+    JSON.stringify(
+      {
+        tools: [
+          {
+            name: "delete_file",
+            description: "Delete file",
+            inputSchema: {
+              type: "object",
+              properties: {
+                path: { type: "string" }
+              },
+              required: ["path"]
+            }
+          }
+        ]
+      },
+      null,
+      2
+    )
+  );
+
+  const { stdout } = await runCli(["fix", inputPath, "--dry-run", "--json"], { cwd: dir });
+  const result = JSON.parse(stdout);
+  const sourceAfter = JSON.parse(await readFile(inputPath, "utf8"));
+
+  assert.equal(result.changed.length, 3);
+  assert.match(result.preview.tools[0].description, /^\[REVIEW REQUIRED\]/);
+  assert.equal(result.preview.tools[0].inputSchema.properties.dry_run.type, "boolean");
+  assert.equal(sourceAfter.tools[0].description, "Delete file");
+});
+
+test("fix command requires dry-run mode", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "mcp-autofix-test-"));
+  const inputPath = join(dir, "tools.json");
+  await writeFile(inputPath, JSON.stringify({ tools: [] }));
+
+  await assert.rejects(
+    runCli(["fix", inputPath], { cwd: dir }),
+    /The fix command only supports --dry-run previews/
+  );
+});
