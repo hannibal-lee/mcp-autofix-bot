@@ -3,6 +3,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { planFixes } from "./fix-planner.js";
+import { createPullRequest } from "./github.js";
 import { previewFixes } from "./patch-writer.js";
 import { buildPrDraft } from "./pr-draft.js";
 import { normalizeNativeTools } from "./report-readers.js";
@@ -16,7 +17,7 @@ function usage() {
 Usage:
   mcp-autofix-bot scan <tools.json> [--json] [--output report.json]
   mcp-autofix-bot fix <tools.json> --dry-run [--json]
-  mcp-autofix-bot pr <report.json> --dry-run
+  mcp-autofix-bot pr <report.json> (--dry-run | --create)
 
 Examples:
   mcp-autofix-bot scan examples/bad-mcp-server/tools.json --json
@@ -36,7 +37,7 @@ function parseFlags(args) {
       continue;
     }
 
-    if (arg === "--json" || arg === "--dry-run" || arg === "--help") {
+    if (arg === "--json" || arg === "--dry-run" || arg === "--create" || arg === "--help") {
       flags.set(arg, true);
       continue;
     }
@@ -119,13 +120,20 @@ async function commandPr(args) {
     return;
   }
 
-  if (!flags.has("--dry-run")) {
-    throw new Error("The v0 scaffold only supports `pr --dry-run`.");
+  if (Number(flags.has("--dry-run")) + Number(flags.has("--create")) !== 1) {
+    throw new Error("Choose exactly one PR mode: --dry-run or --create.");
   }
 
   const report = JSON.parse(await readFile(reportPath, "utf8"));
   const fixes = report.fixes ?? [];
   const draft = buildPrDraft(report);
+
+  if (flags.has("--create")) {
+    const result = await createPullRequest(draft);
+    process.stdout.write(`Created pull request: ${result.url}\n`);
+    return;
+  }
+
   const lines = [
     `Dry run: would open a PR with ${fixes.length} proposed fixes.`,
     "",

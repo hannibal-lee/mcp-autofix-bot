@@ -110,6 +110,28 @@ test("pr command summarizes the dry-run pull request without touching remotes", 
   assert.match(stdout, /Require confirmation flag/);
 });
 
+test("pr command requires an explicit dry-run or create mode", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "mcp-autofix-test-"));
+  const reportPath = join(dir, "report.json");
+  await writeFile(reportPath, JSON.stringify({ summary: {}, fixes: [] }));
+
+  await assert.rejects(
+    runCli(["pr", reportPath], { cwd: dir }),
+    /Choose exactly one PR mode: --dry-run or --create/
+  );
+});
+
+test("pr command rejects dry-run and create together", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "mcp-autofix-test-"));
+  const reportPath = join(dir, "report.json");
+  await writeFile(reportPath, JSON.stringify({ summary: {}, fixes: [] }));
+
+  await assert.rejects(
+    runCli(["pr", reportPath, "--dry-run", "--create"], { cwd: dir }),
+    /Choose exactly one PR mode: --dry-run or --create/
+  );
+});
+
 test("fix dry-run prints a JSON preview without writing the source manifest", async () => {
   const dir = await mkdtemp(join(tmpdir(), "mcp-autofix-test-"));
   const inputPath = join(dir, "tools.json");
