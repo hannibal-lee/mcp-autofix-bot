@@ -1,0 +1,22 @@
+{
+  "tool": "mcp-assert",
+  "results": [
+    {
+      "assertion": "dangerous tools expose confirmation semantics",
+      "status": "failed",
+      "severity": "error",
+      "target": {
+        "tool": "delete_file"
+      },
+      "message": "delete_file can remove user data without a confirmation field."
+    },
+    {
+      "assertion": "read-only tools are documented",
+      "status": "passed",
+      "target": {
+        "tool": "search_docs"
+      },
+      "message": "search_docs includes a clear description."
+    }
+  ]
+}

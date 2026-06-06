@@ -1,0 +1,17 @@
+{
+  "tool": "mcpdiff",
+  "changes": [
+    {
+      "type": "changed",
+      "path": "tools.delete_file.inputSchema.properties.path.description",
+      "severity": "warning",
+      "message": "Property description was removed from delete_file.path."
+    },
+    {
+      "type": "removed",
+      "path": "tools.deploy_app.inputSchema.properties.dry_run",
+      "severity": "error",
+      "message": "dry_run was removed from deploy_app."
+    }
+  ]
+}

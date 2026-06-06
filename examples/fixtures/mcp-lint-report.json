@@ -1,0 +1,19 @@
+{
+  "tool": "mcp-lint",
+  "version": "0.4.0",
+  "issues": [
+    {
+      "ruleId": "tool-description-vague",
+      "severity": "warning",
+      "tool": "delete_file",
+      "message": "Tool description should explain side effects."
+    },
+    {
+      "ruleId": "property-description-missing",
+      "severity": "warning",
+      "tool": "delete_file",
+      "property": "path",
+      "message": "Property path is missing a description."
+    }
+  ]
+}
