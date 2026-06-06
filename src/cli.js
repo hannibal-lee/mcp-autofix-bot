@@ -4,6 +4,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { planFixes } from "./fix-planner.js";
 import { previewFixes } from "./patch-writer.js";
+import { buildPrDraft } from "./pr-draft.js";
 import { normalizeNativeTools } from "./report-readers.js";
 import { scanTool } from "./rules.js";
 
@@ -124,18 +125,14 @@ async function commandPr(args) {
 
   const report = JSON.parse(await readFile(reportPath, "utf8"));
   const fixes = report.fixes ?? [];
+  const draft = buildPrDraft(report);
   const lines = [
     `Dry run: would open a PR with ${fixes.length} proposed fixes.`,
     "",
-    "Proposed PR title:",
-    "Improve MCP tool schemas and descriptions for safer agent use",
+    `Title: ${draft.title}`,
     "",
-    "Fix summary:"
+    draft.body
   ];
-
-  for (const fix of fixes) {
-    lines.push(`- ${fix.tool}: ${fix.title}`);
-  }
 
   process.stdout.write(`${lines.join("\n")}\n`);
 }

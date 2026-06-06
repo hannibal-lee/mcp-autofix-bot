@@ -104,6 +104,8 @@ test("pr command summarizes the dry-run pull request without touching remotes", 
   const { stdout } = await runCli(["pr", reportPath, "--dry-run"], { cwd: dir });
 
   assert.match(stdout, /Dry run: would open a PR with 2 proposed fixes/);
+  assert.match(stdout, /Title: Improve MCP tool schemas for clearer agent use/);
+  assert.match(stdout, /This PR improves MCP tool schema clarity/);
   assert.match(stdout, /Clarify destructive behavior/);
   assert.match(stdout, /Require confirmation flag/);
 });
