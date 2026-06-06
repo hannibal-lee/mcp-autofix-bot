@@ -46,6 +46,8 @@ test("scan reports vague tool descriptions and missing property descriptions", a
 
   assert.equal(report.summary.toolCount, 1);
   assert.equal(report.summary.issueCount, 3);
+  assert.equal(report.fixes.length, 3);
+  assert.deepEqual(report.manualReview, []);
   assert.deepEqual(
     report.issues.map((issue) => issue.ruleId),
     ["tool-description-vague", "dangerous-tool-needs-confirmation", "property-description-missing"]

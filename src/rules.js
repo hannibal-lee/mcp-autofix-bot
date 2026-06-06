@@ -20,7 +20,6 @@ export function hasConfirmationProperty(schema = {}) {
 
 export function scanTool(tool) {
   const issues = [];
-  const fixes = [];
   const schema = tool.inputSchema ?? {};
   const properties = schema.properties ?? {};
 
@@ -31,12 +30,6 @@ export function scanTool(tool) {
       tool: tool.name,
       message: "Tool description is too short or lacks a clear sentence boundary."
     });
-    fixes.push({
-      tool: tool.name,
-      title: "Clarify tool purpose and safe-use boundaries",
-      patchHint:
-        "Expand the description with the operation scope, side effects, failure modes, and user-visible result."
-    });
   }
 
   if (DANGEROUS_TOOL_PATTERN.test(`${tool.name ?? ""} ${tool.description ?? ""}`) && !hasConfirmationProperty(schema)) {
@@ -45,12 +38,6 @@ export function scanTool(tool) {
       severity: "error",
       tool: tool.name,
       message: "Potentially destructive or side-effectful tool does not expose a confirmation, preview, or dry-run field."
-    });
-    fixes.push({
-      tool: tool.name,
-      title: "Require confirmation or dry-run for side-effectful action",
-      patchHint:
-        "Add a confirmation, preview, or dry_run field and describe when callers must use it before execution."
     });
   }
 
@@ -63,14 +50,8 @@ export function scanTool(tool) {
         property: propertyName,
         message: `Input property "${propertyName}" is missing a description.`
       });
-      fixes.push({
-        tool: tool.name,
-        title: `Describe input property "${propertyName}"`,
-        patchHint:
-          "Add a concise property description that states format, constraints, examples, and whether the value is user-controlled."
-      });
     }
   }
 
-  return { issues, fixes };
+  return { issues };
 }

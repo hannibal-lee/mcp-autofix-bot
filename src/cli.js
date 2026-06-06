@@ -2,6 +2,7 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
+import { planFixes } from "./fix-planner.js";
 import { normalizeNativeTools } from "./report-readers.js";
 import { scanTool } from "./rules.js";
 
@@ -56,7 +57,7 @@ function buildReport(sourcePath, tools) {
   const scannedAt = new Date().toISOString();
   const results = tools.map(scanTool);
   const issues = results.flatMap((result) => result.issues);
-  const fixes = results.flatMap((result) => result.fixes);
+  const { fixes, manualReview } = planFixes(issues);
   const errorCount = issues.filter((issue) => issue.severity === "error").length;
 
   return {
@@ -72,7 +73,8 @@ function buildReport(sourcePath, tools) {
       warningCount: issues.length - errorCount
     },
     issues,
-    fixes
+    fixes,
+    manualReview
   };
 }
 

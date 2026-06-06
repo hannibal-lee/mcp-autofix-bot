@@ -18,6 +18,7 @@ test("scanTool flags vague descriptions, dangerous tools, and missing property d
     result.issues.map((issue) => issue.ruleId),
     ["tool-description-vague", "dangerous-tool-needs-confirmation", "property-description-missing"]
   );
+  assert.equal(result.fixes, undefined);
 });
 
 test("scanTool stays quiet for clear read-only tools", () => {
@@ -37,5 +38,4 @@ test("scanTool stays quiet for clear read-only tools", () => {
   });
 
   assert.equal(result.issues.length, 0);
-  assert.equal(result.fixes.length, 0);
 });
