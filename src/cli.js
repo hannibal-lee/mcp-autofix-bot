@@ -2,10 +2,10 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
+import { normalizeNativeTools } from "./report-readers.js";
+import { scanTool } from "./rules.js";
 
 const VERSION = "0.1.0";
-const DANGEROUS_TOOL_PATTERN =
-  /\b(delete|remove|destroy|drop|purge|overwrite|write|send|email|charge|pay|deploy|execute|exec|run|shell)\b/i;
 
 function usage() {
   return `mcp-autofix-bot ${VERSION}
@@ -52,96 +52,6 @@ function parseFlags(args) {
   return { flags, positionals };
 }
 
-function normalizeTools(payload) {
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-
-  if (Array.isArray(payload.tools)) {
-    return payload.tools;
-  }
-
-  if (payload.result && Array.isArray(payload.result.tools)) {
-    return payload.result.tools;
-  }
-
-  throw new Error("Expected a JSON array, { tools: [...] }, or MCP tools/list result.");
-}
-
-function isVagueDescription(description) {
-  if (typeof description !== "string") {
-    return true;
-  }
-
-  const trimmed = description.trim();
-  return trimmed.length < 40 || !/[.!?]$/.test(trimmed);
-}
-
-function hasConfirmationProperty(schema = {}) {
-  const properties = schema.properties ?? {};
-  return Object.entries(properties).some(([name, property]) => {
-    const description = String(property?.description ?? "");
-    return /confirm|approval|dry[- ]?run|preview/i.test(`${name} ${description}`);
-  });
-}
-
-function scanTool(tool) {
-  const issues = [];
-  const fixes = [];
-  const schema = tool.inputSchema ?? {};
-  const properties = schema.properties ?? {};
-
-  if (isVagueDescription(tool.description)) {
-    issues.push({
-      ruleId: "tool-description-vague",
-      severity: "warning",
-      tool: tool.name,
-      message: "Tool description is too short or lacks a clear sentence boundary."
-    });
-    fixes.push({
-      tool: tool.name,
-      title: "Clarify tool purpose and safe-use boundaries",
-      patchHint:
-        "Expand the description with the operation scope, side effects, failure modes, and user-visible result."
-    });
-  }
-
-  if (DANGEROUS_TOOL_PATTERN.test(`${tool.name ?? ""} ${tool.description ?? ""}`) && !hasConfirmationProperty(schema)) {
-    issues.push({
-      ruleId: "dangerous-tool-needs-confirmation",
-      severity: "error",
-      tool: tool.name,
-      message: "Potentially destructive or side-effectful tool does not expose a confirmation, preview, or dry-run field."
-    });
-    fixes.push({
-      tool: tool.name,
-      title: "Require confirmation or dry-run for side-effectful action",
-      patchHint:
-        "Add a confirmation, preview, or dry_run field and describe when callers must use it before execution."
-    });
-  }
-
-  for (const [propertyName, property] of Object.entries(properties)) {
-    if (!property?.description) {
-      issues.push({
-        ruleId: "property-description-missing",
-        severity: "warning",
-        tool: tool.name,
-        property: propertyName,
-        message: `Input property "${propertyName}" is missing a description.`
-      });
-      fixes.push({
-        tool: tool.name,
-        title: `Describe input property "${propertyName}"`,
-        patchHint:
-          "Add a concise property description that states format, constraints, examples, and whether the value is user-controlled."
-      });
-    }
-  }
-
-  return { issues, fixes };
-}
-
 function buildReport(sourcePath, tools) {
   const scannedAt = new Date().toISOString();
   const results = tools.map(scanTool);
@@ -176,7 +86,7 @@ async function commandScan(args) {
   }
 
   const payload = JSON.parse(await readFile(inputPath, "utf8"));
-  const tools = normalizeTools(payload);
+  const tools = normalizeNativeTools(payload);
   const report = buildReport(inputPath, tools);
   const output = JSON.stringify(report, null, 2);
 
