@@ -1,5 +1,5 @@
 import { planFixes } from "./fix-planner.js";
-import { normalizeNativeTools } from "./report-readers.js";
+import { locateNativeTools, normalizeNativeTools } from "./report-readers.js";
 import { scanTool } from "./rules.js";
 
 function cloneJson(value) {
@@ -22,8 +22,13 @@ function confirmationDescription(toolName) {
   return `Set to true only after the caller has reviewed the planned ${toolName} action and accepts its side effects.`;
 }
 
+function pathForTool(pathPrefix, toolIndex, suffix) {
+  const toolPath = pathPrefix ? `${pathPrefix}[${toolIndex}]` : `[${toolIndex}]`;
+  return suffix ? `${toolPath}.${suffix}` : toolPath;
+}
+
 function applyFix(preview, fix) {
-  const tools = normalizeNativeTools(preview);
+  const { tools, pathPrefix } = locateNativeTools(preview);
   const toolIndex = findToolIndex(tools, fix.tool);
   if (toolIndex === -1) {
     return null;
@@ -41,24 +46,24 @@ function applyFix(preview, fix) {
       ruleId: fix.ruleId,
       tool: fix.tool,
       action: fix.action,
-      path: `tools[${toolIndex}].description`,
+      path: pathForTool(pathPrefix, toolIndex, "description"),
       value: tool.description,
       requiresReview: true
     };
   }
 
   if (fix.action === "add-confirmation-property") {
-    schema.properties.dry_run ??= {
+    schema.properties.confirm ??= {
       type: "boolean",
       description: confirmationDescription(tool.name),
-      default: true
+      default: false
     };
     return {
       ruleId: fix.ruleId,
       tool: fix.tool,
       action: fix.action,
-      path: `tools[${toolIndex}].inputSchema.properties.dry_run`,
-      value: schema.properties.dry_run,
+      path: pathForTool(pathPrefix, toolIndex, "inputSchema.properties.confirm"),
+      value: schema.properties.confirm,
       requiresReview: true
     };
   }
@@ -70,7 +75,7 @@ function applyFix(preview, fix) {
       tool: fix.tool,
       property: fix.property,
       action: fix.action,
-      path: `tools[${toolIndex}].inputSchema.properties.${fix.property}.description`,
+      path: pathForTool(pathPrefix, toolIndex, `inputSchema.properties.${fix.property}.description`),
       value: schema.properties[fix.property].description,
       requiresReview: true
     };

@@ -6,7 +6,7 @@ import { planFixes } from "./fix-planner.js";
 import { createPullRequest } from "./github.js";
 import { previewFixes } from "./patch-writer.js";
 import { buildPrDraft } from "./pr-draft.js";
-import { normalizeNativeTools } from "./report-readers.js";
+import { normalizeExternalReport, normalizeNativeTools } from "./report-readers.js";
 import { scanTool } from "./rules.js";
 
 const VERSION = "0.1.0";
@@ -83,6 +83,37 @@ function buildReport(sourcePath, tools) {
   };
 }
 
+function buildReportFromExternal(sourcePath, payload) {
+  const normalized = normalizeExternalReport(payload);
+  const issues = normalized.issues;
+  const { fixes, manualReview } = planFixes(issues);
+  const errorCount = issues.filter((issue) => issue.severity === "error").length;
+
+  return {
+    tool: "mcp-autofix-bot",
+    version: VERSION,
+    source: basename(sourcePath),
+    sourceTool: normalized.sourceTool,
+    summary: {
+      status: issues.length === 0 ? "pass" : "fail",
+      issueCount: issues.length,
+      errorCount,
+      warningCount: issues.length - errorCount
+    },
+    issues,
+    fixes,
+    manualReview
+  };
+}
+
+function normalizeReportForPr(sourcePath, payload) {
+  if (payload?.tool === "mcp-autofix-bot" || Array.isArray(payload?.fixes) || Array.isArray(payload?.manualReview)) {
+    return payload;
+  }
+
+  return buildReportFromExternal(sourcePath, payload);
+}
+
 async function commandScan(args) {
   const { flags, positionals } = parseFlags(args);
   const inputPath = positionals[0];
@@ -124,7 +155,8 @@ async function commandPr(args) {
     throw new Error("Choose exactly one PR mode: --dry-run or --create.");
   }
 
-  const report = JSON.parse(await readFile(reportPath, "utf8"));
+  const payload = JSON.parse(await readFile(reportPath, "utf8"));
+  const report = normalizeReportForPr(reportPath, payload);
   const fixes = report.fixes ?? [];
   const draft = buildPrDraft(report);
 

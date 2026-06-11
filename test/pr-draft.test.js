@@ -55,3 +55,18 @@ test("buildPrDraft handles reports without fixes", () => {
 
   assert.match(draft.body, /No deterministic fixes were planned/);
 });
+
+test("buildPrDraft includes external source report names", () => {
+  const draft = buildPrDraft({
+    sourceTool: "mcp-lint",
+    summary: {
+      issueCount: 1,
+      errorCount: 0,
+      warningCount: 1
+    },
+    fixes: [],
+    manualReview: []
+  });
+
+  assert.match(draft.body, /Source report: mcp-lint/);
+});

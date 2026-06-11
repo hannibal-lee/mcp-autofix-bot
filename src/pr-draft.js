@@ -29,6 +29,7 @@ export function buildPrDraft(report) {
     "## Summary",
     "",
     `- Planned deterministic fixes: ${fixes.length}`,
+    ...(report.sourceTool ? [`- Source report: ${report.sourceTool}`] : []),
     `- Reported issues: ${summary.issueCount ?? 0}`,
     `- Errors: ${summary.errorCount ?? 0}`,
     `- Warnings: ${summary.warningCount ?? 0}`,

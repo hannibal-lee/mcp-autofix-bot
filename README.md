@@ -55,11 +55,13 @@ Preview the pull request it would prepare:
 npx mcp-autofix-bot pr report.json --dry-run
 ```
 
-Create a live pull request only when you intentionally want the GitHub side effect:
+Create a live pull request only after you have reviewed and committed the intended fixes on a feature branch:
 
 ```bash
 npx mcp-autofix-bot pr report.json --create
 ```
+
+`pr --create` refuses to run from the default branch, with uncommitted changes, or when there are no commits to open as a PR. The command prepares the PR title/body from the report; it does not silently apply preview JSON changes.
 
 ## What it catches today
 
@@ -67,7 +69,7 @@ npx mcp-autofix-bot pr report.json --create
 - `property-description-missing`: input schema properties without descriptions.
 - `dangerous-tool-needs-confirmation`: destructive or side-effectful tools without confirmation, preview, or dry-run affordances.
 
-The report reader also normalizes fixtures shaped like `mcp-lint`, `mcp-assert`, and `mcpdiff` output so workflows can compose with existing MCP quality tools.
+The PR command also normalizes reports shaped like `mcp-lint`, `mcp-assert`, and `mcpdiff` output so workflows can compose with existing MCP quality tools.
 
 ## Before and after
 

@@ -164,7 +164,8 @@ test("fix dry-run prints a JSON preview without writing the source manifest", as
 
   assert.equal(result.changed.length, 3);
   assert.match(result.preview.tools[0].description, /^\[REVIEW REQUIRED\]/);
-  assert.equal(result.preview.tools[0].inputSchema.properties.dry_run.type, "boolean");
+  assert.equal(result.preview.tools[0].inputSchema.properties.confirm.type, "boolean");
+  assert.equal(result.preview.tools[0].inputSchema.properties.confirm.default, false);
   assert.equal(sourceAfter.tools[0].description, "Delete file");
 });
 
@@ -177,4 +178,30 @@ test("fix command requires dry-run mode", async () => {
     runCli(["fix", inputPath], { cwd: dir }),
     /The fix command only supports --dry-run previews/
   );
+});
+
+test("pr command accepts supported external quality reports", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "mcp-autofix-test-"));
+  const reportPath = join(dir, "mcp-lint-report.json");
+  await writeFile(
+    reportPath,
+    JSON.stringify({
+      tool: "mcp-lint",
+      issues: [
+        {
+          ruleId: "tool-description-vague",
+          severity: "warning",
+          tool: "delete_file",
+          message: "Tool description should explain side effects."
+        }
+      ]
+    })
+  );
+
+  const { stdout } = await runCli(["pr", reportPath, "--dry-run"], { cwd: dir });
+
+  assert.match(stdout, /Dry run: would open a PR with 0 proposed fixes/);
+  assert.match(stdout, /Reported issues: 1/);
+  assert.match(stdout, /Manual review still required/);
+  assert.match(stdout, /mcp-lint/);
 });
