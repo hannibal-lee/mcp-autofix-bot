@@ -31,6 +31,9 @@ test("assertReadyToCreatePullRequest requires a clean feature branch with commit
     if (args[0] === "status") {
       return { stdout: "" };
     }
+    if (args[0] === "rev-parse") {
+      return { stdout: "abc123\n" };
+    }
     if (args[0] === "rev-list") {
       return { stdout: "2\n" };
     }
@@ -38,7 +41,7 @@ test("assertReadyToCreatePullRequest requires a clean feature branch with commit
   });
 
   assert.deepEqual(result, { branch: "fix/schema-preview", baseBranch: "main" });
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 5);
 });
 
 test("assertReadyToCreatePullRequest rejects the default branch", async () => {
@@ -86,12 +89,36 @@ test("assertReadyToCreatePullRequest rejects branches without new commits", asyn
       if (args[0] === "status") {
         return { stdout: "" };
       }
+      if (args[0] === "rev-parse") {
+        return { stdout: "abc123\n" };
+      }
       if (args[0] === "rev-list") {
         return { stdout: "0\n" };
       }
       throw new Error(`Unexpected command: ${command} ${args.join(" ")}`);
     }),
     /empty pull request/
+  );
+});
+
+test("assertReadyToCreatePullRequest reports missing remote default branches clearly", async () => {
+  await assert.rejects(
+    assertReadyToCreatePullRequest(async (command, args) => {
+      if (args[0] === "branch") {
+        return { stdout: "fix/schema-preview\n" };
+      }
+      if (args[0] === "symbolic-ref") {
+        return { stdout: "origin/main\n" };
+      }
+      if (args[0] === "status") {
+        return { stdout: "" };
+      }
+      if (args[0] === "rev-parse") {
+        throw new Error("unknown revision");
+      }
+      throw new Error(`Unexpected command: ${command} ${args.join(" ")}`);
+    }),
+    /Cannot find remote default branch "origin\/main"/
   );
 });
 
@@ -112,6 +139,9 @@ test("createPullRequest calls the injected runner without shell interpolation af
       }
       if (command === "git" && args[0] === "status") {
         return { stdout: "", stderr: "" };
+      }
+      if (command === "git" && args[0] === "rev-parse") {
+        return { stdout: "abc123\n", stderr: "" };
       }
       if (command === "git" && args[0] === "rev-list") {
         return { stdout: "1\n", stderr: "" };
@@ -135,6 +165,10 @@ test("createPullRequest calls the injected runner without shell interpolation af
     {
       command: "git",
       args: ["status", "--short"]
+    },
+    {
+      command: "git",
+      args: ["rev-parse", "--verify", "origin/main"]
     },
     {
       command: "git",

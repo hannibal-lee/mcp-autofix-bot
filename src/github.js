@@ -29,8 +29,17 @@ async function hasCleanWorkingTree(runner) {
   return (await runGit(["status", "--short"], runner)) === "";
 }
 
-async function hasCommitsSinceDefaultBranch(branch, runner) {
-  const count = await runGit(["rev-list", "--count", `origin/${branch}..HEAD`], runner);
+async function ensureRemoteBranchExists(branch, runner) {
+  try {
+    await runGit(["rev-parse", "--verify", `origin/${branch}`], runner);
+  } catch {
+    throw new Error(`Cannot find remote default branch "origin/${branch}". Run "git fetch origin" before creating a pull request.`);
+  }
+}
+
+async function hasCommitsSinceDefaultBranch(baseBranch, runner) {
+  await ensureRemoteBranchExists(baseBranch, runner);
+  const count = await runGit(["rev-list", "--count", `origin/${baseBranch}..HEAD`], runner);
   return Number(count) > 0;
 }
 

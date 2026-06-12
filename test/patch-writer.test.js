@@ -50,8 +50,35 @@ test("previewFixes creates review-marked JSON changes without mutating the input
   assert.match(result.preview.tools[0].inputSchema.properties.path.description, /REVIEW REQUIRED/);
   assert.equal(result.preview.tools[0].inputSchema.properties.confirm.type, "boolean");
   assert.equal(result.preview.tools[0].inputSchema.properties.confirm.default, false);
+  assert.deepEqual(result.preview.tools[0].inputSchema.required, ["path", "confirm"]);
   assert.equal(manifest.tools[0].description, "Delete file");
   assert.equal(manifest.tools[0].inputSchema.properties.path.description, undefined);
+});
+
+test("previewFixes does not duplicate existing confirmation requirements", () => {
+  const manifest = {
+    tools: [
+      {
+        name: "delete_file",
+        description: "Delete file",
+        inputSchema: {
+          type: "object",
+          properties: {
+            path: { type: "string" },
+            confirm: {
+              type: "boolean",
+              description: "Set to true after reviewing the deletion."
+            }
+          },
+          required: ["path", "confirm"]
+        }
+      }
+    ]
+  };
+
+  const result = previewFixes(manifest);
+
+  assert.deepEqual(result.preview.tools[0].inputSchema.required, ["path", "confirm"]);
 });
 
 test("previewFixes reports paths relative to array manifests", () => {

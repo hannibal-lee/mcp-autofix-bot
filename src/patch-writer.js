@@ -27,6 +27,13 @@ function pathForTool(pathPrefix, toolIndex, suffix) {
   return suffix ? `${toolPath}.${suffix}` : toolPath;
 }
 
+function requireSchemaProperty(schema, propertyName) {
+  schema.required ??= [];
+  if (!schema.required.includes(propertyName)) {
+    schema.required.push(propertyName);
+  }
+}
+
 function applyFix(preview, fix) {
   const { tools, pathPrefix } = locateNativeTools(preview);
   const toolIndex = findToolIndex(tools, fix.tool);
@@ -58,6 +65,7 @@ function applyFix(preview, fix) {
       description: confirmationDescription(tool.name),
       default: false
     };
+    requireSchemaProperty(schema, "confirm");
     return {
       ruleId: fix.ruleId,
       tool: fix.tool,
