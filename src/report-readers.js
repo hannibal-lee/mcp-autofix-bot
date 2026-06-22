@@ -1,17 +1,21 @@
-export function normalizeNativeTools(payload) {
+export function locateNativeTools(payload) {
   if (Array.isArray(payload)) {
-    return payload;
+    return { tools: payload, pathPrefix: "" };
   }
 
   if (Array.isArray(payload.tools)) {
-    return payload.tools;
+    return { tools: payload.tools, pathPrefix: "tools" };
   }
 
   if (payload.result && Array.isArray(payload.result.tools)) {
-    return payload.result.tools;
+    return { tools: payload.result.tools, pathPrefix: "result.tools" };
   }
 
   throw new Error("Expected a JSON array, { tools: [...] }, or MCP tools/list result.");
+}
+
+export function normalizeNativeTools(payload) {
+  return locateNativeTools(payload).tools;
 }
 
 function slugify(value) {

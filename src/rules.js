@@ -13,8 +13,17 @@ export function isVagueDescription(description) {
 export function hasConfirmationProperty(schema = {}) {
   const properties = schema.properties ?? {};
   return Object.entries(properties).some(([name, property]) => {
+    if (property?.type !== "boolean") {
+      return false;
+    }
+
+    const normalizedName = String(name).replace(/-/g, "_").toLowerCase();
+    if (["confirm", "confirmed", "approval", "approved", "dry_run"].includes(normalizedName)) {
+      return true;
+    }
+
     const description = String(property?.description ?? "");
-    return /confirm|approval|dry[- ]?run|preview/i.test(`${name} ${description}`);
+    return /\b(confirm|confirmation|approval|approved|dry[- ]?run)\b/i.test(description);
   });
 }
 

@@ -36,7 +36,7 @@ test("previewFixes creates review-marked JSON changes without mutating the input
       },
       {
         action: "add-confirmation-property",
-        path: "tools[0].inputSchema.properties.dry_run",
+        path: "tools[0].inputSchema.properties.confirm",
         requiresReview: true
       },
       {
@@ -48,9 +48,93 @@ test("previewFixes creates review-marked JSON changes without mutating the input
   );
   assert.match(result.preview.tools[0].description, /^\[REVIEW REQUIRED\]/);
   assert.match(result.preview.tools[0].inputSchema.properties.path.description, /REVIEW REQUIRED/);
-  assert.equal(result.preview.tools[0].inputSchema.properties.dry_run.type, "boolean");
+  assert.equal(result.preview.tools[0].inputSchema.properties.confirm.type, "boolean");
+  assert.equal(result.preview.tools[0].inputSchema.properties.confirm.default, false);
+  assert.deepEqual(result.preview.tools[0].inputSchema.required, ["path", "confirm"]);
   assert.equal(manifest.tools[0].description, "Delete file");
   assert.equal(manifest.tools[0].inputSchema.properties.path.description, undefined);
+});
+
+test("previewFixes does not duplicate existing confirmation requirements", () => {
+  const manifest = {
+    tools: [
+      {
+        name: "delete_file",
+        description: "Delete file",
+        inputSchema: {
+          type: "object",
+          properties: {
+            path: { type: "string" },
+            confirm: {
+              type: "boolean",
+              description: "Set to true after reviewing the deletion."
+            }
+          },
+          required: ["path", "confirm"]
+        }
+      }
+    ]
+  };
+
+  const result = previewFixes(manifest);
+
+  assert.deepEqual(result.preview.tools[0].inputSchema.required, ["path", "confirm"]);
+});
+
+test("previewFixes reports paths relative to array manifests", () => {
+  const manifest = [
+    {
+      name: "delete_file",
+      description: "Delete file",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: { type: "string" }
+        }
+      }
+    }
+  ];
+
+  const result = previewFixes(manifest);
+
+  assert.deepEqual(
+    result.changed.map((change) => change.path),
+    [
+      "[0].description",
+      "[0].inputSchema.properties.confirm",
+      "[0].inputSchema.properties.path.description"
+    ]
+  );
+});
+
+test("previewFixes reports paths relative to MCP tools/list results", () => {
+  const manifest = {
+    result: {
+      tools: [
+        {
+          name: "delete_file",
+          description: "Delete file",
+          inputSchema: {
+            type: "object",
+            properties: {
+              path: { type: "string" }
+            }
+          }
+        }
+      ]
+    }
+  };
+
+  const result = previewFixes(manifest);
+
+  assert.deepEqual(
+    result.changed.map((change) => change.path),
+    [
+      "result.tools[0].description",
+      "result.tools[0].inputSchema.properties.confirm",
+      "result.tools[0].inputSchema.properties.path.description"
+    ]
+  );
 });
 
 test("previewFixes reports no changes for clear tool manifests", () => {
