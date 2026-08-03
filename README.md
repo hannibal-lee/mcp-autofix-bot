@@ -32,7 +32,7 @@ npm run pr
 CLI interface:
 
 ```text
-mcp-autofix-bot scan <tools.json> [--json] [--output report.json]
+mcp-autofix-bot scan <tools.json> [--stable] [--json] [--output report.json]
 mcp-autofix-bot fix <tools.json> --dry-run [--json]
 mcp-autofix-bot pr <report.json> (--dry-run | --create)
 ```
@@ -41,6 +41,12 @@ Scan a tools manifest:
 
 ```bash
 npx mcp-autofix-bot scan examples/bad-mcp-server/tools.json --json --output report.json
+```
+
+Use `--stable` when a tracked CI report should change only when scan results change. Stable reports omit the `scannedAt` timestamp:
+
+```bash
+npx mcp-autofix-bot scan examples/bad-mcp-server/tools.json --stable --output reports/scheduled-scan.json
 ```
 
 Preview review-marked JSON changes without writing files:
@@ -109,6 +115,14 @@ jobs:
 ```
 
 A complete example lives in [.github/workflows/mcp-autofix.yml](./.github/workflows/mcp-autofix.yml).
+
+### Scheduled report pull requests
+
+[`.github/workflows/scheduled-mcp-scan.yml`](./.github/workflows/scheduled-mcp-scan.yml) runs on weekdays at 01:17 UTC and can also be started manually. It writes a stable report to [`reports/scheduled-scan.json`](./reports/scheduled-scan.json). When that file changes, the workflow opens or updates a bot-authored pull request on `automation/scheduled-mcp-scan`; unchanged runs create no commit and no pull request.
+
+The repository setting **Actions > General > Workflow permissions > Allow GitHub Actions to create and approve pull requests** must be enabled. The workflow keeps the default token policy read-only and elevates only `contents` and `pull-requests` for this job.
+
+The pull request is deliberately review-only. A maintainer must inspect the report diff and merge it, and the workflow never applies schema fixes automatically. The bot-authored commit is not attributed as a maintainer contribution.
 
 ## Launch strategy
 

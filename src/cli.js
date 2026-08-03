@@ -15,7 +15,7 @@ function usage() {
   return `mcp-autofix-bot ${VERSION}
 
 Usage:
-  mcp-autofix-bot scan <tools.json> [--json] [--output report.json]
+  mcp-autofix-bot scan <tools.json> [--stable] [--json] [--output report.json]
   mcp-autofix-bot fix <tools.json> --dry-run [--json]
   mcp-autofix-bot pr <report.json> (--dry-run | --create)
 
@@ -37,7 +37,13 @@ function parseFlags(args) {
       continue;
     }
 
-    if (arg === "--json" || arg === "--dry-run" || arg === "--create" || arg === "--help") {
+    if (
+      arg === "--json" ||
+      arg === "--stable" ||
+      arg === "--dry-run" ||
+      arg === "--create" ||
+      arg === "--help"
+    ) {
       flags.set(arg, true);
       continue;
     }
@@ -58,8 +64,7 @@ function parseFlags(args) {
   return { flags, positionals };
 }
 
-function buildReport(sourcePath, tools) {
-  const scannedAt = new Date().toISOString();
+function buildReport(sourcePath, tools, { includeTimestamp = true } = {}) {
   const results = tools.map(scanTool);
   const issues = results.flatMap((result) => result.issues);
   const { fixes, manualReview } = planFixes(issues);
@@ -69,7 +74,7 @@ function buildReport(sourcePath, tools) {
     tool: "mcp-autofix-bot",
     version: VERSION,
     source: basename(sourcePath),
-    scannedAt,
+    ...(includeTimestamp ? { scannedAt: new Date().toISOString() } : {}),
     summary: {
       status: issues.length === 0 ? "pass" : "fail",
       toolCount: tools.length,
@@ -125,7 +130,7 @@ async function commandScan(args) {
 
   const payload = JSON.parse(await readFile(inputPath, "utf8"));
   const tools = normalizeNativeTools(payload);
-  const report = buildReport(inputPath, tools);
+  const report = buildReport(inputPath, tools, { includeTimestamp: !flags.has("--stable") });
   const output = JSON.stringify(report, null, 2);
 
   if (flags.has("--output")) {

@@ -44,6 +44,7 @@ test("scan reports vague tool descriptions and missing property descriptions", a
   const { stdout } = await runCli(["scan", inputPath, "--json"], { cwd: dir });
   const report = JSON.parse(stdout);
 
+  assert.match(report.scannedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
   assert.equal(report.summary.toolCount, 1);
   assert.equal(report.summary.issueCount, 3);
   assert.equal(report.fixes.length, 3);
@@ -85,6 +86,38 @@ test("scan can write a report file for CI artifacts", async () => {
 
   assert.equal(report.summary.issueCount, 0);
   assert.equal(report.summary.status, "pass");
+});
+
+test("scan stable mode produces repeatable reports without timestamps", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "mcp-autofix-test-"));
+  const inputPath = join(dir, "tools.json");
+  await writeFile(
+    inputPath,
+    JSON.stringify({
+      tools: [
+        {
+          name: "search_docs",
+          description: "Search indexed project documentation using a natural-language query.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Natural-language search query."
+              }
+            },
+            required: ["query"]
+          }
+        }
+      ]
+    })
+  );
+
+  const first = JSON.parse((await runCli(["scan", inputPath, "--stable", "--json"], { cwd: dir })).stdout);
+  const second = JSON.parse((await runCli(["scan", inputPath, "--stable", "--json"], { cwd: dir })).stdout);
+
+  assert.equal(first.scannedAt, undefined);
+  assert.deepEqual(first, second);
 });
 
 test("pr command summarizes the dry-run pull request without touching remotes", async () => {
